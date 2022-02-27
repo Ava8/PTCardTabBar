@@ -121,10 +121,24 @@ open class PTCardTabBar: UIView {
     }
     
     func select(at index: Int, notifyDelegate: Bool = true){
-        for (bIndex, view) in stackView.arrangedSubviews.enumerated() {
-            if let button = view as? UIButton {
-                button.tintColor =  bIndex == index ? tintColor : UIColor(rgb: 0x9b9b9b)
+        /* move the indicator view */
+        if indicatorViewXConstraint != nil {
+            indicatorViewXConstraint.isActive = false
+            indicatorViewXConstraint = nil
+        }
+        
+        for (bIndex, button) in buttons().enumerated() {
+            button.selectedColor = tintColor
+            button.isSelected = bIndex == index
+            
+            if bIndex == index {
+                indicatorViewXConstraint = indicatorView.centerXAnchor.constraint(equalTo: button.centerXAnchor)
+                indicatorViewXConstraint.isActive = true
             }
+        }
+        
+        UIView.animate(withDuration: 0.25) {
+            self.layoutIfNeeded()
         }
         
         if notifyDelegate {
@@ -161,32 +175,6 @@ open class PTCardTabBar: UIView {
     private func buttons() -> [PTBarButton] {
         return stackView.arrangedSubviews.compactMap { $0 as? PTBarButton }
     }
-    
-    func select(at index: Int){
-        /* move the indicator view */
-        if indicatorViewXConstraint != nil {
-            indicatorViewXConstraint.isActive = false
-            indicatorViewXConstraint = nil
-        }
-        
-        for (bIndex, button) in buttons().enumerated() {
-            button.selectedColor = tintColor
-            button.isSelected = bIndex == index
-            
-            if bIndex == index {
-                indicatorViewXConstraint = indicatorView.centerXAnchor.constraint(equalTo: button.centerXAnchor)
-                indicatorViewXConstraint.isActive = true
-            }
-        }
-        
-        UIView.animate(withDuration: 0.25) {
-            self.layoutIfNeeded()
-        }
-        
-        
-        self.delegate?.cardTabBar(self, didSelectItemAt: index)
-    }
-    
     
     @objc func buttonTapped(sender: PTBarButton){
         if let index = stackView.arrangedSubviews.firstIndex(of: sender){
